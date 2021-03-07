@@ -1,0 +1,24 @@
+{
+  "isLocal": true,
+  "port": 3000,
+  "log": {
+    "enable": false,
+    "url": ""
+  },
+  "fastify": {
+    "bodyLimit": 3145728,
+    "logger": {
+      "level": "info"
+    },
+    "ignoreTrailingSlash": true
+  },
+  "mongo": {
+    "url": "mongodb://localhost:27017/food-app",
+    "options": {
+      "useNewUrlParser": true,
+      "useCreateIndex": true,
+      "useFindAndModify": false,
+      "useUnifiedTopology": true
+    }
+  }
+}
