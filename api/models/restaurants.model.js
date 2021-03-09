@@ -12,12 +12,8 @@ const RestaurantSchema = new Schema(
       type: Number
     },
     business_hours: {
-      type: String
+      type: Array
     },
-    // business_hours: {
-    //   type: Object,
-    //   default: {}
-    // },
     location: {
       type: {
         type: String

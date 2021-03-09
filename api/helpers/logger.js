@@ -1,5 +1,11 @@
 const fastify = require('fastify')({
-  logger: true
+  logger: {
+    prettyPrint: {
+      colorize: true,
+      levelFirst: true,
+      ignore: 'time,pid,hostname'
+    }
+  }
 });
 
 /**

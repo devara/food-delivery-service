@@ -1,10 +1,11 @@
 const { ReasonPhrases, StatusCodes } = require('http-status-codes');
+const { addUser } = require('../services/user.service');
+
 const {
-  addUser,
-  getTopPurchase,
-  getUserByTransactionAmount,
-  transactionList
-} = require('../services/user.service');
+  userTransactions,
+  topPurchaseUser,
+  userByTransactionAmount
+} = require('../services/transaction.service');
 
 const storeData = async (request, reply) => {
   try {
@@ -19,7 +20,7 @@ const storeData = async (request, reply) => {
 
 const getTop = async (request, reply) => {
   try {
-    const result = await getTopPurchase(request.query);
+    const result = await topPurchaseUser(request.query);
     reply.code(result.status).send(result.payload);
   } catch (error) {
     reply
@@ -30,7 +31,7 @@ const getTop = async (request, reply) => {
 
 const getUserbyTransAmount = async (request, reply) => {
   try {
-    const result = await getUserByTransactionAmount(request.query);
+    const result = await userByTransactionAmount(request.query);
     reply.code(result.status).send(result.payload);
   } catch (error) {
     reply
@@ -41,7 +42,7 @@ const getUserbyTransAmount = async (request, reply) => {
 
 const getTransactions = async (request, reply) => {
   try {
-    const result = await transactionList(request.query);
+    const result = await userTransactions(request.query);
     reply.code(result.status).send(result.payload);
   } catch (error) {
     reply

@@ -1,44 +1,16 @@
 const restoModel = require('../models/restaurants.model');
 const menuModel = require('../models/menu.model');
-const transactionModel = require('../models/transaction.model');
-const restoranModel = require('../models/resto.model');
 const { slugify } = require('../helpers/slugify');
 const { locationTranslate } = require('../helpers/location');
 const { errorResult } = require('../helpers/responses');
+const moment = require('moment');
+const momentDuration = require('moment-duration-format');
+momentDuration(moment);
 
 const getResto = async (req) => {
   try {
-    const fields =
-      req.fields !== undefined && req.fields !== ''
-        ? req.fields.split(',')
-        : [];
-
-    // const data = await restoranModel.aggregate([
-    //   {
-    //     $match: {
-    //       // name: { $not: { $size: 0 } }
-    //       name: 'Hungry Cafe'
-    //     }
-    //   },
-    //   { $unwind: '$name' },
-    //   {
-    //     $group: {
-    //       _id: { $toLower: '$name' },
-    //       count: { $sum: 1 },
-    //       menu: { $push: '$menu' }
-    //     }
-    //   },
-    //   {
-    //     $project: {
-    //       name: 1,
-    //       items: { $concatArrays: ['$menu'] }
-    //     }
-    //   }
-    // ]);
-
     const selects = {
-      name: 1,
-      business_hours: 1
+      _id: 0
     };
 
     const data = await restoModel.find().select(selects);
@@ -47,7 +19,7 @@ const getResto = async (req) => {
       status: 200,
       payload: {
         count: data.length,
-        datas: data
+        data: data
       }
     };
   } catch (error) {
@@ -175,7 +147,7 @@ const mapRestaurant = (item) => {
     name: item.name,
     slug: slugify(item.name),
     balance: parseFloat(item.balance),
-    business_hours: item.business_hours,
+    business_hours: mapHours(item.business_hours),
     location: {
       type: 'Point',
       coordinates: locationTranslate(item)
@@ -185,10 +157,93 @@ const mapRestaurant = (item) => {
   return data;
 };
 
+const mapHours = (data) => {
+  let business_hours = [];
+  let openHours = data !== null ? data.split(' | ') : [];
+  if (openHours.length) {
+    openHours.forEach((days) => {
+      const dayWithHours = days.split(': ');
+      const multiDay = /-/.test(dayWithHours[0])
+        ? dayWithHours[0].split('-')
+        : dayWithHours[0].split(', ');
+      multiDay.forEach((day) => {
+        let dayName = 'sunday';
+        switch (day.toLowerCase()) {
+          case 'sunday':
+          case 'sun':
+            dayName = 'Sunday';
+            break;
+          case 'monday':
+          case 'mon':
+            dayName = 'Monday';
+            break;
+          case 'tuesday':
+          case 'tues':
+            dayName = 'Tuesday';
+            break;
+          case 'wednesday':
+          case 'weds':
+            dayName = 'Wednesday';
+            break;
+          case 'thursday':
+          case 'thurs':
+            dayName = 'Thursday';
+            break;
+          case 'friday':
+          case 'fri':
+            dayName = 'Friday';
+            break;
+          case 'saturday':
+          case 'sat':
+            dayName = 'Saturday';
+            break;
+        }
+        const hoursSplit = dayWithHours[1].split(' - ');
+        /**
+         * Add the custom date to get different close and open hour
+         * If close hour and open hour is same type (example: both using AM)
+         */
+        let closeHour = `2020-01-01 ${hoursSplit[1]}`;
+        const openHour = `2020-01-01 ${hoursSplit[0]}`;
+
+        let close = moment.utc(closeHour, ['YYYY-MM-DD h:mm A']);
+        const open = moment.utc(openHour, ['YYYY-MM-DD h:mm A']);
+
+        if (close.isBefore(open)) {
+          closeHour = `2020-01-02 ${hoursSplit[1]}`;
+          close = moment.utc(closeHour, ['YYYY-MM-DD h:mm A']);
+        }
+        const total = moment.duration(close.diff(open)).asHours();
+
+        const dayData = {
+          day: dayName,
+          open: hoursSplit[0],
+          // open: moment.utc(hoursSplit[0], ['h:mm A']).format('HH:mm'),
+          open_hour_in_seconds: moment(hoursSplit[0], 'h:mm A').diff(
+            moment().startOf('day'),
+            'seconds'
+          ),
+          close: hoursSplit[1],
+          // close: moment.utc(hoursSplit[1], ['h:mm A']).format('HH:mm'),
+          close_hour_in_seconds: moment(hoursSplit[1], 'h:mm A').diff(
+            moment().startOf('day'),
+            'seconds'
+          ),
+          totalHours: total
+        };
+        business_hours.push(dayData);
+      });
+    });
+  }
+
+  return business_hours;
+};
+
 const mapMenu = (relatedResto, data) => {
   const menus = data.map((item) => {
     const menu = {
       name: item.name,
+      slug: slugify(item.name),
       price: item.price,
       restaurant: relatedResto
     };
@@ -217,15 +272,7 @@ const bulkRestaurant = async (data) => {
           insert_msg:
             importData.nUpserted > 0
               ? importData.nUpserted + ' restaurants inserted'
-              : 'no restaurants inserted',
-          update_msg:
-            importData.nModified > 0
-              ? importData.nModified + ' restaurants updated'
-              : 'no restaurants updated',
-          match_msg:
-            importData.nMatched > 0
-              ? importData.nMatched + ' restaurants matches'
-              : 'no restaurants matches'
+              : 'no restaurants inserted'
         }
         // data: importData
       }
@@ -240,7 +287,7 @@ const bulkMenu = async (data) => {
     const writeMenu = await menuModel.bulkWrite(
       data.map((item) => ({
         updateOne: {
-          filter: item,
+          filter: { slug: item.slug, restaurant: item.restaurant },
           update: { $set: item },
           upsert: true
         }
@@ -253,15 +300,7 @@ const bulkMenu = async (data) => {
           insert_msg:
             writeMenu.nUpserted > 0
               ? writeMenu.nUpserted + ' menus inserted'
-              : 'no menu inserted',
-          update_msg:
-            writeMenu.nModified > 0
-              ? writeMenu.nModified + ' menus updated'
-              : 'no menu updated',
-          match_msg:
-            writeMenu.nMatched > 0
-              ? writeMenu.nMatched + ' menus matches'
-              : 'no menu matches'
+              : 'no menu inserted'
         }
         // data: writeMenu
       }
@@ -339,70 +378,6 @@ const getRestoByLoc = async (req) => {
   }
 };
 
-const getTransactions = async (req) => {
-  try {
-    const relatedResto = req.slug;
-    const data = await transactionModel
-      .find({
-        'restaurant.slug': relatedResto
-      })
-      .select({
-        dish: 1,
-        amount: 1,
-        'user.name': 1,
-        date: 1
-      });
-
-    return {
-      status: 200,
-      payload: {
-        count: data.length,
-        data: data
-      }
-    };
-  } catch (error) {
-    return errorResult(error);
-  }
-};
-
-const popularRestaurant = async (req) => {
-  try {
-    const limit =
-      req.limit !== undefined && req.limit != '' ? parseInt(req.limit) : 50;
-    const getData = await transactionModel.aggregate([
-      {
-        $group: {
-          _id: '$restaurant.name',
-          totalTransaction: {
-            $sum: 1
-          },
-          totalAmount: {
-            $sum: '$amount'
-          }
-        }
-      },
-      {
-        $sort: {
-          totalTransaction: -1,
-          totalAmount: -1
-        }
-      },
-      {
-        $limit: limit
-      }
-    ]);
-
-    return {
-      status: 200,
-      payload: {
-        data: getData
-      }
-    };
-  } catch (error) {
-    return errorResult(error);
-  }
-};
-
 const restoHasDishwithPriceRange = async (req) => {
   try {
     const minPrice =
@@ -464,11 +439,176 @@ const restoHasDishwithPriceRange = async (req) => {
   }
 };
 
+const restoOpenHours = async (req) => {
+  try {
+    if (req.minHours === undefined || req.maxHours === undefined)
+      return {
+        status: 500,
+        payload: {
+          msg: 'Parameter is not valid!'
+        }
+      };
+    const minHours = parseFloat(req.minHours);
+    const maxHours = parseFloat(req.maxHours);
+
+    const projectionQuery = projectionHours(req);
+    const getData = await restoModel.aggregate([
+      projectionQuery,
+      {
+        $match: {
+          $and: [
+            {
+              openHours: {
+                $gte: minHours
+              }
+            },
+            {
+              openHours: {
+                $lte: maxHours
+              }
+            }
+          ]
+        }
+      },
+      {
+        $sort: {
+          openHours: -1
+        }
+      }
+    ]);
+
+    const perType = req.type !== undefined && req.type != '' ? req.type : 'day';
+
+    const resultData = getData.map((item) => {
+      const totalHours = moment
+        .duration(item.openHours, 'h')
+        .format('HH:m')
+        .split(':');
+      const hours =
+        parseFloat(totalHours[0]) > 1
+          ? `${totalHours[0]} hours`
+          : `${totalHours[0]} hour`;
+
+      const minutes =
+        parseFloat(totalHours[1]) > 1 ? ` ${totalHours[1]} minutes` : '';
+
+      return {
+        name: item.name,
+        opening_hours: `${hours}${minutes} per ${perType}`
+      };
+    });
+
+    return {
+      status: 200,
+      payload: {
+        count: resultData.length,
+        data: resultData
+      }
+    };
+  } catch (error) {
+    errorResult(error);
+  }
+};
+
+const projectionHours = (req) => {
+  let hourQuery = {
+    $round: [
+      {
+        $avg: '$business_hours.totalHours'
+      },
+      2
+    ]
+  };
+
+  if (req.type == 'week') {
+    hourQuery = {
+      $sum: '$business_hours.totalHours'
+    };
+  }
+
+  const query = {
+    $project: {
+      name: 1,
+      openHours: hourQuery
+    }
+  };
+
+  return query;
+};
+
+const getOpenResto = async (req) => {
+  try {
+    const dateParam = req.datetime;
+    const day = moment(dateParam, 'YYYY-MM-DD HH:mm A').format('dddd');
+
+    const hourMinute = moment(dateParam, 'YYYY-MM-DD HH:mm A').format(
+      'HH:mm A'
+    );
+    const seconds = moment(hourMinute, 'HH:mm A').diff(
+      moment().startOf('day'),
+      'seconds'
+    );
+    console.log(seconds);
+
+    let getData = await restoModel.aggregate([
+      {
+        $project: {
+          name: 1,
+          currentDay: {
+            $filter: {
+              input: '$business_hours',
+              as: 'item',
+              cond: {
+                $eq: ['$$item.day', day]
+              }
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          $and: [
+            {
+              'currentDay.open_hour_in_seconds': {
+                $lte: seconds
+              }
+            },
+            {
+              'currentDay.close_hour_in_seconds': {
+                $gte: seconds
+              }
+            }
+          ]
+        }
+      }
+    ]);
+
+    if (getData.length) {
+      getData = getData.map((item) => {
+        const currentDayOperational = item.currentDay[0];
+        return {
+          name: item.name,
+          thisDay: `${currentDayOperational.day}, ${currentDayOperational.open} - ${currentDayOperational.close}`
+        };
+      });
+    }
+
+    return {
+      status: 200,
+      payload: {
+        count: getData.length,
+        data: getData
+      }
+    };
+  } catch (error) {
+    return errorResult(error);
+  }
+};
+
 module.exports = {
   addResto,
   getResto,
   getRestoByLoc,
-  getTransactions,
-  popularRestaurant,
-  restoHasDishwithPriceRange
+  restoHasDishwithPriceRange,
+  restoOpenHours
 };

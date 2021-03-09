@@ -3,10 +3,14 @@ const {
   addResto,
   getResto,
   getRestoByLoc,
-  getTransactions,
-  popularRestaurant,
-  restoHasDishwithPriceRange
+  restoHasDishwithPriceRange,
+  restoOpenHours
 } = require('../services/restaurant.service');
+
+const {
+  restoTransactions,
+  popularRestoByTransactions
+} = require('../services/transaction.service');
 
 const storingData = async (request, reply) => {
   try {
@@ -21,7 +25,7 @@ const storingData = async (request, reply) => {
 
 const getData = async (request, reply) => {
   try {
-    const result = await getResto(request);
+    const result = await getResto(request.query);
     reply.code(result.status).send(result.payload);
   } catch (error) {
     reply
@@ -32,7 +36,7 @@ const getData = async (request, reply) => {
 
 const getTransactionData = async (request, reply) => {
   try {
-    const result = await getTransactions(request.query);
+    const result = await restoTransactions(request.query);
     reply.code(result.status).send(result.payload);
   } catch (error) {
     reply
@@ -43,7 +47,7 @@ const getTransactionData = async (request, reply) => {
 
 const getPopularResto = async (request, reply) => {
   try {
-    const result = await popularRestaurant(request.query);
+    const result = await popularRestoByTransactions(request.query);
     reply.code(result.status).send(result.payload);
   } catch (error) {
     reply
@@ -74,11 +78,23 @@ const getRestoByDishPrice = async (request, reply) => {
   }
 };
 
+const getRestoOpenHours = async (request, reply) => {
+  try {
+    const result = await restoOpenHours(request.query);
+    reply.code(result.status).send(result.payload);
+  } catch (error) {
+    reply
+      .code(StatusCodes.INTERNAL_SERVER_ERROR)
+      .send(ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+
 module.exports = {
   storingData,
   getData,
   getTransactionData,
   getDataLoc,
   getPopularResto,
-  getRestoByDishPrice
+  getRestoByDishPrice,
+  getRestoOpenHours
 };

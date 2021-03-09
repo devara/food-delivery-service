@@ -1,18 +1,15 @@
-- OPERATIONS AND SUPPORT
 List all restaurants that are open at a certain datetime
 
 List all restaurants within the vicinity of the user’s location or (any location), ranked by distance (the distances will be displayed in the app) - DONE
 
-List all restaurants that are open for x-z hours per day or week
+List all restaurants that are open for x-z hours per day or week - DONE
 
 List all restaurants that have x-z number of dishes within a price range - DONE
 
-- SEARCH 
 Search for restaurants or dishes by name, ranked by relevance to search term - DONE
 
 Search for restaurants that has a dish matching search term - DONE
 
-- TRANSACTIONS
 The top x users by total transaction amount within a date range - DONE
 
 The most popular restaurants by transaction volume, either by number of transactions or transaction amount - DONE
@@ -23,4 +20,4 @@ List all transactions belonging to a restaurant - DONE
 
 List all transactions belonging to a user - DONE
 
-Process a user purchase in an atomic manner and ensure the changes of cash balances can be applied safely and correctly.
+Process a user purchase in an atomic manner and ensure the changes of cash balances can be applied safely and correctly. - DONE

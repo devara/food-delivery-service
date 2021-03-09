@@ -1,35 +1,35 @@
-const config = require('config');
-const fastifyConfig = Object.assign({}, config.get('fastify'));
-const Fastify = require('fastify');
-const helmet = require('fastify-helmet');
-const { connectDB } = require('./api/db');
+const { APP_PORT } = require('./api/environment');
+const server = require('./api/server');
 
-const server = Fastify(fastifyConfig);
-
-module.exports = { server };
-
-(async () => {
-  try {
-    /**
-     * Connect to mongoDB
-     */
-    await connectDB();
-
-    server.register(helmet);
-    /**
-     * Register all routes
-     */
-    server.register(require('./api/routes'));
-    await server.listen(3000, (err) => {
-      if (err) {
-        server.log.error(err);
-        console.log(err);
+server
+  .createServer()
+  .then((app) => {
+    app
+      .listen(APP_PORT)
+      .then((_) => {
+        app.log.info('Server Started');
+        process
+          .on('SIGINT', () => {
+            app.mongo.connection.close();
+            app.close();
+            process.exit(0);
+          })
+          .on('SIGTERM', () => {
+            app.mongo.connection.close();
+            app.close();
+            process.exit(0);
+          })
+          .on('uncaughtException', (err) => {
+            console.error(err.stack);
+            process.exit(1);
+          })
+          .on('unhandledRejection', (reason, promise) => {
+            console.error(reason, `Unhandled rejection at Promise: ${promise}`);
+          });
+      })
+      .catch((err) => {
+        console.log('Error starting server: ', err);
         process.exit(1);
-      }
-      server.log.info('Server Started');
-    });
-  } catch (error) {
-    server.log.error(error);
-    process.exit(1);
-  }
-})();
+      });
+  })
+  .catch((err) => console.log(err));

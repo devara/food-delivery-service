@@ -4,7 +4,8 @@ const {
   getTransactionData,
   getDataLoc,
   getPopularResto,
-  getRestoByDishPrice
+  getRestoByDishPrice,
+  getRestoOpenHours
 } = require('../controllers/restaurant.controller');
 
 module.exports = async (fastify) => {
@@ -14,4 +15,5 @@ module.exports = async (fastify) => {
   fastify.get('/nearby', getDataLoc);
   fastify.get('/popular', getPopularResto);
   fastify.get('/range-dish-price', getRestoByDishPrice);
+  fastify.get('/open-week-hour', getRestoOpenHours);
 };
