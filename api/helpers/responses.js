@@ -3,7 +3,7 @@ const errorResult = (err) => {
   return {
     status: StatusCodes.INTERNAL_SERVER_ERROR,
     payload: {
-      msg: err.message
+      message: err.message
     }
   };
 };
@@ -12,7 +12,7 @@ const notFound = () => {
   return {
     status: StatusCodes.NOT_FOUND,
     payload: {
-      msg: ReasonPhrases.NOT_FOUND
+      message: ReasonPhrases.NOT_FOUND
     }
   };
 };
@@ -21,7 +21,7 @@ const badRequest = () => {
   return {
     status: StatusCodes.BAD_REQUEST,
     payload: {
-      msg: ReasonPhrases.BAD_REQUEST
+      message: ReasonPhrases.BAD_REQUEST
     }
   };
 };

@@ -4,6 +4,42 @@ const { slugify } = require('../helpers/slugify');
 const { locationTranslate } = require('../helpers/location');
 const { errorResult } = require('../helpers/responses');
 
+const getUsers = async (req) => {
+  try {
+    let offset = 0;
+    let limit = 10;
+    let page = 1;
+
+    if (req.limit !== undefined && req.limit != '') {
+      limit = parseInt(req.limit);
+    }
+    if (req.page !== undefined && req.page != '') {
+      offset = limit * (parseInt(req.page) - 1);
+      page = parseInt(req.page);
+    }
+    const selects = {
+      _id: 0
+    };
+
+    const data = await userModel
+      .find()
+      .select(selects)
+      .skip(offset)
+      .limit(limit);
+
+    return {
+      status: 200,
+      payload: {
+        page: page,
+        show: data.length,
+        data: data
+      }
+    };
+  } catch (error) {
+    return errorResult(error);
+  }
+};
+
 const addUser = async (req) => {
   try {
     if (Array.isArray(req.body)) {
@@ -36,6 +72,10 @@ const bulkAdd = async (body) => {
 
     await transactionModel.collection.createIndex({
       'user.slug': 1
+    });
+
+    await transactionModel.collection.createIndex({
+      amount: 1
     });
 
     return {
@@ -171,15 +211,7 @@ const bulkUser = async (data) => {
           insert_msg:
             writeUsers.nUpserted > 0
               ? writeUsers.nUpserted + ' users inserted'
-              : 'no users inserted',
-          update_msg:
-            writeUsers.nModified > 0
-              ? writeUsers.nModified + ' users updated'
-              : 'no users updated',
-          match_msg:
-            writeUsers.nMatched > 0
-              ? writeUsers.nMatched + ' users matches'
-              : 'no users matches'
+              : 'no users inserted'
         }
         // data: writeUsers
       }
@@ -208,15 +240,7 @@ const bulkTransaction = async (data) => {
           insert_msg:
             writeTransactions.nUpserted > 0
               ? writeTransactions.nUpserted + ' transactions inserted'
-              : 'no transactions inserted',
-          update_msg:
-            writeTransactions.nModified > 0
-              ? writeTransactions.nModified + ' transactions updated'
-              : 'no transactions updated',
-          match_msg:
-            writeTransactions.nMatched > 0
-              ? writeTransactions.nMatched + ' transactions matches'
-              : 'no transactions matches'
+              : 'no transactions inserted'
         }
         // data: writeTransactions
       }
@@ -227,5 +251,6 @@ const bulkTransaction = async (data) => {
 };
 
 module.exports = {
-  addUser
+  addUser,
+  getUsers
 };

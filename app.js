@@ -5,8 +5,9 @@ server
   .createServer()
   .then((app) => {
     app
-      .listen(APP_PORT)
+      .listen(APP_PORT, '0.0.0.0')
       .then((_) => {
+        app.oas();
         app.log.info('Server Started');
         process
           .on('SIGINT', () => {

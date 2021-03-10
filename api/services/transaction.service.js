@@ -62,7 +62,7 @@ const popularRestoByTransactions = async (req) => {
       {
         $group: {
           _id: '$restaurant.name',
-          totalTransaction: {
+          transactionCount: {
             $sum: 1
           },
           totalAmount: {
@@ -72,18 +72,27 @@ const popularRestoByTransactions = async (req) => {
       },
       {
         $sort: {
-          totalTransaction: -1,
+          transactionCount: -1,
           totalAmount: -1
         }
       },
       {
         $limit: limit
+      },
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+          transactionCount: 1,
+          totalAmount: 1
+        }
       }
     ]);
 
     return {
       status: 200,
       payload: {
+        count: getData.length,
         data: getData
       }
     };
@@ -109,7 +118,8 @@ const topPurchaseUser = async (req) => {
       },
       {
         $limit: limit
-      }
+      },
+      projectionResult()
     ]);
     return {
       status: 200,
@@ -126,7 +136,9 @@ const topPurchaseUser = async (req) => {
 
 const userByTransactionAmount = async (req) => {
   try {
-    const operator = req.operator == 'above' ? '$gte' : '$lte';
+    const operator =
+      req.operator !== undefined && req.operator != '' ? req.operator : 'above';
+    const operatorQuery = operator == 'above' ? '$gte' : '$lte';
     const amount = parseFloat(req.amount);
 
     const dateRangeParam = matchDateRange(req);
@@ -137,13 +149,14 @@ const userByTransactionAmount = async (req) => {
       {
         $match: {
           total: {
-            [operator]: amount
+            [operatorQuery]: amount
           }
         }
       },
       {
         $sort: { total: -1 }
-      }
+      },
+      projectionResult()
     ]);
 
     return {
@@ -208,16 +221,29 @@ const groupTransactionsQuery = () => {
   return grouping;
 };
 
-const createUserTransaction = async (body) => {
+const projectionResult = () => {
+  return {
+    $project: {
+      _id: 0,
+      name: 1,
+      list: 1,
+      total_transactions: {
+        $round: ['$total', 2]
+      }
+    }
+  };
+};
+
+const createUserTransaction = async (req) => {
   try {
     const menuPromise = menuModel
       .findOne({
         $and: [
           {
-            slug: body.dish
+            slug: req.body.dish
           },
           {
-            'restaurant.slug': body.restaurant
+            'restaurant.slug': req.body.restaurant
           }
         ]
       })
@@ -226,14 +252,14 @@ const createUserTransaction = async (body) => {
 
     const userPromise = userModel
       .findOne({
-        slug: body.user
+        slug: req.body.user
       })
       .select('name slug balance')
       .lean();
 
     const restoPromise = restoModel
       .findOne({
-        slug: body.restaurant
+        slug: req.body.restaurant
       })
       .select('name slug balance')
       .lean();
@@ -253,11 +279,14 @@ const createUserTransaction = async (body) => {
       };
 
     if (menuData.price > userData.balance) {
-      console.log(utc().toDate());
       return {
-        status: 200,
+        status: 417,
         payload: {
-          msg: `Your balance isn't enough!`
+          msg: `Your balance isn't enough!`,
+          detail: {
+            currentBalance: userData.balance,
+            dish_price: menuData.price
+          }
         }
       };
     } else {

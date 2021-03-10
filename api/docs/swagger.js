@@ -1,20 +1,28 @@
 exports.options = {
-  routePrefix: '/documentation',
+  routePrefix: '/docs',
+  // yaml: true,
   exposeRoute: true,
   swagger: {
+    swagger: '2.0',
     info: {
-      title: 'Fastify API',
-      description:
-        'Building a blazing fast REST API with Node.js, MongoDB, Fastify and Swagger',
-      version: '1.0.0'
+      version: '1.0',
+      title: 'Food App',
+      contact: {}
     },
-    externalDocs: {
-      url: 'https://swagger.io',
-      description: 'Find more info here'
+    host: '127.0.0.1:3000',
+    securityDefinitions: {
+      basicAuth: {
+        type: 'http',
+        scheme: 'basic'
+      }
     },
-    host: 'localhost',
     schemes: ['http'],
     consumes: ['application/json'],
-    produces: ['application/json']
+    produces: ['application/json'],
+    security: [
+      {
+        basicAuth: []
+      }
+    ]
   }
 };

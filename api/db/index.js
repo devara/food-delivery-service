@@ -13,7 +13,7 @@ const connectDB = async (fastify, options, next) => {
   try {
     const url = `mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${MONGODB_DATABASE}?authSource=${MONGODB_DATABASE}&retryWrites=true`;
     await mongoose
-      .connect(MONGODB_URL, {
+      .connect(url, {
         useNewUrlParser: true,
         useCreateIndex: true,
         useFindAndModify: false,

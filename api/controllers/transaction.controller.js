@@ -3,7 +3,7 @@ const { createUserTransaction } = require('../services/transaction.service');
 
 const purchaseMenu = async (request, reply) => {
   try {
-    const result = await createUserTransaction(request.body);
+    const result = await createUserTransaction(request);
     reply.code(result.status).send(result.payload);
   } catch (error) {
     reply

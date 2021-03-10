@@ -1,6 +1,6 @@
 const restoModel = require('../models/restaurants.model');
 const menuModel = require('../models/menu.model');
-const { errorResult } = require('../helpers/responses');
+const { errorResult, notFound } = require('../helpers/responses');
 
 const restoAndMenuSearch = async (req) => {
   try {
@@ -8,8 +8,7 @@ const restoAndMenuSearch = async (req) => {
       .split(/\s+/)
       .map((word) => `\"${word}\"`)
       .join(' ');
-    console.log(keywords);
-    let restoData = await restoModel
+    const restoPromise = restoModel
       .find(
         {
           $text: {
@@ -23,12 +22,8 @@ const restoAndMenuSearch = async (req) => {
         name: 1
       })
       .lean();
-    restoData = restoData.map((item) => {
-      item.type = 'restaurant';
-      return item;
-    });
 
-    let menuData = await menuModel
+    const menuPromise = menuModel
       .find(
         {
           $text: {
@@ -44,13 +39,25 @@ const restoAndMenuSearch = async (req) => {
         'restaurant.name': 1
       })
       .lean();
-    menuData = menuData.map((item) => {
+
+    const [restoData, menuData] = await Promise.all([
+      restoPromise,
+      menuPromise
+    ]);
+
+    if (restoData.length === 0 && menuData.length === 0) return notFound();
+
+    const restoResult = restoData.map((item) => {
+      item.type = 'restaurant';
+      return item;
+    });
+    const menuResult = menuData.map((item) => {
       item.type = 'dish';
       item.restaurant = item.restaurant.name;
       return item;
     });
 
-    let result = [...restoData, ...menuData];
+    let result = [...restoResult, ...menuResult];
     result.sort((a, b) => (a.searchScore > b.searchScore ? -1 : 0));
 
     return {
@@ -73,7 +80,7 @@ const restoHasDish = async (req) => {
       .join(' ');
 
     const limit =
-      req.limit !== undefined && req.limit != '' ? parseInt(req.limit) : 500;
+      req.limit !== undefined && req.limit != '' ? parseInt(req.limit) : 50;
     const getData = await menuModel.aggregate([
       {
         $match: {
@@ -85,7 +92,7 @@ const restoHasDish = async (req) => {
       {
         $group: {
           _id: '$restaurant.name',
-          list: {
+          dish_lists: {
             $push: {
               name: '$name'
             }
@@ -103,8 +110,18 @@ const restoHasDish = async (req) => {
       },
       {
         $limit: limit
+      },
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+          totalDish: 1,
+          dish_lists: 1
+        }
       }
     ]);
+
+    if (getData.length === 0) return notFound();
 
     return {
       status: 200,

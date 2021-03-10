@@ -1,6 +1,7 @@
 const { NODE_ENV } = require('./environment');
 const Fastify = require('fastify');
-const helmet = require('fastify-helmet');
+const swaggerDocs = require('./docs/swagger');
+const { validate } = require('./services/auth.service');
 
 const logger = {
   development: {
@@ -29,7 +30,28 @@ const createServer = async () => {
 
   await server.register(require('./db'));
 
-  await server.register(helmet);
+  await server.register(require('fastify-helmet'), {
+    contentSecurityPolicy: {
+      directives: {
+        baseUri: ["'self'"],
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        objectSrc: ["'self'"],
+        workerSrc: ["'self'", 'blob:'],
+        frameSrc: ["'self'"],
+        formAction: ["'self'"],
+        upgradeInsecureRequests: []
+      }
+    }
+  });
+
+  await server.register(require('fastify-cors'), { origin: '*' });
+
+  await server.register(require('fastify-oas'), swaggerDocs.options);
+
+  await server.register(require('fastify-auth'));
+
+  await server.register(require('fastify-basic-auth'), { validate });
 
   await server.register(require('./routes'), { prefix: 'api/v1' });
 

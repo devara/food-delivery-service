@@ -2,23 +2,39 @@ const restoModel = require('../models/restaurants.model');
 const menuModel = require('../models/menu.model');
 const { slugify } = require('../helpers/slugify');
 const { locationTranslate } = require('../helpers/location');
-const { errorResult } = require('../helpers/responses');
+const { errorResult, notFound } = require('../helpers/responses');
 const moment = require('moment');
 const momentDuration = require('moment-duration-format');
 momentDuration(moment);
 
 const getResto = async (req) => {
   try {
+    let offset = 0;
+    let limit = 10;
+    let page = 1;
+
+    if (req.limit !== undefined && req.limit != '') {
+      limit = parseInt(req.limit);
+    }
+    if (req.page !== undefined && req.page != '') {
+      offset = limit * (parseInt(req.page) - 1);
+      page = parseInt(req.page);
+    }
     const selects = {
       _id: 0
     };
 
-    const data = await restoModel.find().select(selects);
+    const data = await restoModel
+      .find()
+      .select(selects)
+      .skip(offset)
+      .limit(limit);
 
     return {
       status: 200,
       payload: {
-        count: data.length,
+        page: page,
+        show: data.length,
         data: data
       }
     };
@@ -389,6 +405,9 @@ const restoHasDishwithPriceRange = async (req) => {
         ? parseFloat(req.maxPrice)
         : 10;
 
+    const limit =
+      req.limit !== undefined && req.limit != '' ? parseInt(req.limit) : 50;
+
     const getData = await menuModel.aggregate([
       {
         $match: {
@@ -424,6 +443,16 @@ const restoHasDishwithPriceRange = async (req) => {
         $sort: {
           totalDish: -1
         }
+      },
+      {
+        $limit: limit
+      },
+      {
+        $project: {
+          name: '$_id',
+          totalDish: 1,
+          list: 1
+        }
       }
     ]);
 
@@ -450,6 +479,8 @@ const restoOpenHours = async (req) => {
       };
     const minHours = parseFloat(req.minHours);
     const maxHours = parseFloat(req.maxHours);
+    const limit =
+      req.limit !== undefined && req.limit != '' ? parseInt(req.limit) : 50;
 
     const projectionQuery = projectionHours(req);
     const getData = await restoModel.aggregate([
@@ -474,8 +505,13 @@ const restoOpenHours = async (req) => {
         $sort: {
           openHours: -1
         }
+      },
+      {
+        $limit: limit
       }
     ]);
+
+    if (getData.length === 0) return notFound();
 
     const perType = req.type !== undefined && req.type != '' ? req.type : 'day';
 
@@ -610,5 +646,6 @@ module.exports = {
   getResto,
   getRestoByLoc,
   restoHasDishwithPriceRange,
-  restoOpenHours
+  restoOpenHours,
+  getOpenResto
 };

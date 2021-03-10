@@ -4,7 +4,8 @@ const {
   getResto,
   getRestoByLoc,
   restoHasDishwithPriceRange,
-  restoOpenHours
+  restoOpenHours,
+  getOpenResto
 } = require('../services/restaurant.service');
 
 const {
@@ -89,6 +90,17 @@ const getRestoOpenHours = async (request, reply) => {
   }
 };
 
+const getOpenRestaurant = async (request, reply) => {
+  try {
+    const result = await getOpenResto(request.query);
+    reply.code(result.status).send(result.payload);
+  } catch (error) {
+    reply
+      .code(StatusCodes.INTERNAL_SERVER_ERROR)
+      .send(ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+
 module.exports = {
   storingData,
   getData,
@@ -96,5 +108,6 @@ module.exports = {
   getDataLoc,
   getPopularResto,
   getRestoByDishPrice,
-  getRestoOpenHours
+  getRestoOpenHours,
+  getOpenRestaurant
 };

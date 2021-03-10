@@ -1,5 +1,5 @@
 const { ReasonPhrases, StatusCodes } = require('http-status-codes');
-const { addUser } = require('../services/user.service');
+const { addUser, getUsers } = require('../services/user.service');
 
 const {
   userTransactions,
@@ -10,6 +10,17 @@ const {
 const storeData = async (request, reply) => {
   try {
     const result = await addUser(request);
+    reply.code(result.status).send(result.payload);
+  } catch (error) {
+    reply
+      .code(StatusCodes.INTERNAL_SERVER_ERROR)
+      .send(ReasonPhrases.INTERNAL_SERVER_ERROR);
+  }
+};
+
+const getUserList = async (request, reply) => {
+  try {
+    const result = await getUsers(request.query);
     reply.code(result.status).send(result.payload);
   } catch (error) {
     reply
@@ -51,4 +62,10 @@ const getTransactions = async (request, reply) => {
   }
 };
 
-module.exports = { storeData, getTop, getUserbyTransAmount, getTransactions };
+module.exports = {
+  storeData,
+  getUserList,
+  getTop,
+  getUserbyTransAmount,
+  getTransactions
+};
