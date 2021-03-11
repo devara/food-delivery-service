@@ -72,7 +72,7 @@ Now that the Docker Container is running, we can start importing our raw data in
 
 The database name is **food-app**.
 
-I recommend installing [MongoDB Compas](https://www.mongodb.com/try/download/compass), to access the database. So, you can check if the data is properly imported into the MongoDB collection.
+I recommend installing [MongoDB Compas](https://www.mongodb.com/try/download/compass) to access the database. So, you can check if the data has been properly imported into the MongoDB collection.
 
 MongoDB access details:
 
@@ -85,9 +85,9 @@ MongoDB access details:
 | Password    | letmein-iamhungry     |
 | Database    | food-app              |
 
-The steps for importing raw data, you can also check the API documentation page to import user data and restaurant data.
+For the steps to import raw data, you can also check the API [documentation page](http://127.0.0.1:3000/docs) to import user data and restaurant data.
 
-You can use Postman to import data for a better experience, although you can import directly via the documentation page using the supplied import endpoints.
+You can use Postman to import data for a better experience, although you can import directly via the [documentation page](http://127.0.0.1:3000/docs) using the supplied import endpoints.
 Because when I import raw data on my local device, it took a little while, maybe around 40 seconds to 1 minute, or more.
 
 We have two raw data (**users.json** and **restaurants.json**), but when the import is finished, I split them into 4 collections:
