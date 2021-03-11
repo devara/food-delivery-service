@@ -313,7 +313,7 @@ const openRestoSchema = {
     properties: {
       datetime: {
         type: 'string',
-        description: 'datetime, e.g 2021-03-11'
+        description: 'datetime, e.g 2021-03-11 3 PM'
       }
     },
     required: ['datetime']

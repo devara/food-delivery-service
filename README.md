@@ -85,6 +85,8 @@ MongoDB access details:
 | Password    | letmein-iamhungry     |
 | Database    | food-app              |
 
+![Connect using mongoDB compas](https://i.imgur.com/QLmwcin.png?1)
+
 For the steps to import raw data, you can also check the API [documentation page](http://127.0.0.1:3000/docs) to import user data and restaurant data.
 
 You can use Postman to import data for a better experience, although you can import directly via the [documentation page](http://127.0.0.1:3000/docs) using the supplied import endpoints.
@@ -113,6 +115,8 @@ Steps if you are using postman:
 - It will be create **restaurants** collection (968 documents) and **menus** collection (18.673 documents)
 - For the record, the restaurant with the same name, I merged into one document
 
+![collections view](https://i.imgur.com/Khjqcne.png)
+
 After all the import process is complete, we can start using this API and you can next go to documentatin section.
 
 ## Section 4: API Documentation
@@ -123,3 +127,5 @@ I am use the [Swagger](https://swagger.io/) for serve the API documentation.
 You can access the documentation page to test all endpoints from this API.
 Go to [docs page](http://127.0.0.1:3000/docs)
 You can find all endpoints to check all the features this API can do.
+
+![swagger docs page](https://i.imgur.com/iIZYunS.png)
