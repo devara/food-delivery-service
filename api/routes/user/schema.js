@@ -100,12 +100,12 @@ const getUserTransactions = {
   query: {
     type: 'object',
     properties: {
-      user: {
+      slug: {
         type: 'string',
         description: 'user slug, e.g don-reichert'
       }
     },
-    required: ['user']
+    required: ['slug']
   },
   response: {
     [StatusCodes.OK]: {

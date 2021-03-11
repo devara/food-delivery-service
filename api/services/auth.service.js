@@ -3,6 +3,9 @@ const userModel = require('../models/users.model');
 const restoModel = require('../models/restaurants.model');
 const validate = async (username, password, req, reply) => {
   try {
+    if (req.query.slug !== username)
+      return new Error('Oops! You are not authorized!');
+
     if (/\/restaurant.*|\/v1$/.test(req.url)) {
       const checkResto = await restoModel.findOne({
         slug: username

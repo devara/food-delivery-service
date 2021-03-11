@@ -34,7 +34,7 @@ const restoTransactions = async (req) => {
 
 const userTransactions = async (req) => {
   try {
-    const relatedUser = req.user;
+    const relatedUser = req.slug;
 
     const data = await transactionModel
       .find({
