@@ -24,6 +24,10 @@ The documentation to use this API and check the all of features from the API
 
 How to test this API
 
+#### [`Section 6: Note`](#section-6-note-from-deva)
+
+Some note from Deva
+
 ## Section 1: Features
 
 - List all restaurants within the vicinity of the user’s location or (any location), ranked by distance (the distances will be displayed in the app)
@@ -130,6 +134,9 @@ Want to check the API features? Lets begin!
 I am use the [Swagger](https://swagger.io/) for serve the API documentation.
 You can access the documentation page to test all endpoints from this API.
 Go to [docs page](http://127.0.0.1:3000/docs)
+
+For online documentation, you can access from API that deployed in [Heroku](https://deva-food-app-api.herokuapp.com/docs).
+
 You can find all endpoints to check all the features this API can do.
 
 ![swagger docs page](https://i.imgur.com/iIZYunS.png)
@@ -153,3 +160,24 @@ Then, You will see the results.
 I'm sorry if this test case isn't perfect.
 
 I hope you are happy with my assignment.
+
+## Section 6: Note from Deva
+
+I'm deploying this API to Heroku with this URL [https://deva-food-app-api.herokuapp.com/](https://deva-food-app-api.herokuapp.com/api/v1).
+But, I didn't implement with a docker because we can't use the MongoDB addon there. You can check this [post](https://devcenter.heroku.com/changelog-items/1823).
+
+So, I'm used the free MongoDB Atlas and connected the mongoose using it. You can access the database using Compas with this connection (mongodb+srv://iamhungry:letmeinguys@transaction-cluster.fozm9.mongodb.net/food-app?retryWrites=true&w=majority)
+
+Regarding the raw data that was given to me, yesterday I felt confused and thought quite hard, especially the restaurants.json hihihi
+
+Especially in the data on working hours which are presented in text. I need to do a few splits before importing them into the database.
+And I admit it may be objective that requires looking for data from restaurants that are open at a certain datetime, there is a bug that occurs and it's my fault. Where when we input clock data in the early morning, such as (1 AM or 2 AM), the result data will be empty.
+
+This happens because I'm performing a Query looking for the time span between opening and closing hours using seconds. The value must be above opening hours, and below closing hours.
+The bug I mean, for example, is when restaurant X opens at 10 AM on Wednesdays and closes at 2 AM. This means that the restaurant is still open in the early morning of Thursday. Where, before I calculate the range of opening hours and closing hours, I make a selection on the day data that corresponds to the day entered by the user.
+So if the selected day is Thursday at 1 AM, restaurant X should appear in the data, but because 1 AM is included in the working hours of Wednesday, this means Restaurant X will not appear in the data.
+
+I admit maybe this is my lack of understanding of Query in MongoDB which requires looking for data according to opening hours and closing hours.
+I apologize profusely for this bug which makes one of the objectives imperfect.
+
+Thank you.
