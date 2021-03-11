@@ -1,0 +1,125 @@
+# Food App API Service
+
+This application is the assignment of Devara Eko given by Itsavirus
+
+## `Table of Contents`
+
+#### [`Section 1: Features for this API`](#section-1-features)
+
+List of all the features this API can do
+
+#### [`Section 2: Technologies`](#section-2-tech)
+
+The technologies used to create and develop this API
+
+#### [`Section 3: How to Setup the API`](#section-3-setup-the-api)
+
+How to prepare, setup, and start the API servive
+
+#### [`Section 4: The API Documentation`](#section-4-api-documentation)
+
+The documentation to use this API and check the all of features from the API
+
+## Section 1: Features
+
+- List all restaurants within the vicinity of the user’s location or (any location), ranked by distance (the distances will be displayed in the app)
+- List all restaurants that are open for x-z hours per day or week
+- List all restaurants that have x-z number of dishes within a price range
+- List all restaurants that are open at a certain datetime
+- Search for restaurants or dishes by name, ranked by relevance to search term
+- Search for restaurants that has a dish matching search term
+- The top x users by total transaction amount within a date range
+- The most popular restaurants by transaction volume, either by number of transactions or transaction amount
+- Total number of users who made transactions above or below $v within a date range
+- List all transactions belonging to a restaurant
+- List all transactions belonging to a user
+- Process a user purchase in an atomic manner and ensure the changes of cash balances can be applied safely and correctly
+
+## Section 2: Tech
+
+The API uses a number of open source projects to work properly:
+
+- [node.js](https://nodejs.org/en/) - evented I/O for the backend
+- [Fastify](https://www.fastify.io/) - Fast and low overhead web framework, for Node.js
+- [MongoDB](https://www.mongodb.com/3) - Most popular database for modern apps
+- [Swagger](https://swagger.io/) - API Development for Everyone.
+- [Docker](https://www.docker.com/) - Empowering App Development for Developers
+
+## Section 3: Setup the API
+
+### 3.1: Build the Dockerfile
+
+Before we import raw data to the database (mongodb), we need to build this application using Docker.
+Since we are using the mongodb image from Docker, we need to prepare it and make sure it runs before importing the raw data.
+
+First, copy **.env.example** file into **.env**
+
+Then, in the root of project folder, using terminal, run:
+
+```sh
+docker-compose up
+```
+
+Wait for the Docker build to finish.
+You will have 2 images:
+
+- docker image for this app
+- bitnami/mongodb image
+
+### 3.2: Importing Raw Data to MongoDB
+
+Now that the Docker Container is running, we can start importing our raw data into MongoDB.
+
+The database name is **food-app**.
+
+I recommend installing [MongoDB Compas](https://www.mongodb.com/try/download/compass), to access the database. So, you can check if the data is properly imported into the MongoDB collection.
+
+MongoDB access details:
+
+| Field       | Value                 |
+| ----------- | --------------------- |
+| Hostname    | 0.0.0.0               |
+| Port        | 27017                 |
+| Auth method | username and password |
+| Username    | janganroot            |
+| Password    | letmein-iamhungry     |
+| Database    | food-app              |
+
+The steps for importing raw data, you can also check the API documentation page to import user data and restaurant data.
+
+You can use Postman to import data for a better experience, although you can import directly via the documentation page using the supplied import endpoints.
+Because when I import raw data on my local device, it took a little while, maybe around 40 seconds to 1 minute, or more.
+
+We have two raw data (**users.json** and **restaurants.json**), but when the import is finished, I split them into 4 collections:
+
+- restaurants
+- menus
+- users
+- transactions
+
+When import **users.json**, it will create two collections, **users** and **transactions**.
+For **restaurants.json**, it will create **restaurants** and **menus**.
+
+Steps if you are using postman:
+
+- Use the endpoint: **127.0.0.0:3000/api/v1/user** with POST method
+- We are not use params, but body request, and then choose **raw** method using JSON type
+- Copy all **users.json** data into body request field (raw data must be wrapped as an array)
+- Execute this endpoint and wait untill import process is done
+- Check mongoDB compas, it will be create **users** collection (in my local, there are 999 documents), and **transactions** collection (in my local there are 9308 documents)
+- Next to import restaurants data
+- Use the endpoint: **127.0.0.0:3000/api/v1/restaurant** with POST method and using body request as same as when import users data
+- Copy all **restaurants.json** data into request field then execute and wait it (maybe this is a little bit longer, because the data is quite a lot)
+- It will be create **restaurants** collection (968 documents) and **menus** collection (18.673 documents)
+- For the record, the restaurant with the same name, I merged into one document
+
+After all the import process is complete, we can start using this API and you can next go to documentatin section.
+
+## Section 4: API Documentation
+
+Want to check the API features? Lets begin!
+
+I am use the [Swagger](https://swagger.io/) for serve the API documentation.
+You can access the documentation page to test all endpoints from this API.
+Go to [docs page](http://127.0.0.1:3000/docs)
+You can find all endpoints to check all the features this API can do.
