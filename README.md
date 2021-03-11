@@ -20,6 +20,10 @@ How to prepare, setup, and start the API servive
 
 The documentation to use this API and check the all of features from the API
 
+#### [`Section 5: Testing`](#section-5-api-testing)
+
+How to test this API
+
 ## Section 1: Features
 
 - List all restaurants within the vicinity of the user’s location or (any location), ranked by distance (the distances will be displayed in the app)
@@ -129,3 +133,23 @@ Go to [docs page](http://127.0.0.1:3000/docs)
 You can find all endpoints to check all the features this API can do.
 
 ![swagger docs page](https://i.imgur.com/iIZYunS.png)
+
+## Section 5: API Testing
+
+I'm sorry if I just made a simple test for this API.
+
+To test this API, I used the [Tap](https://node-tap.org/) test and [Supertest](https://github.com/visionmedia/supertest)
+
+You can run the API testing using CLI.
+If docker container for this app is running, go to the docker CLI.
+You can run:
+
+```sh
+npm run test
+```
+
+Then, You will see the results.
+
+I'm sorry if this test case isn't perfect.
+
+I hope you are happy with my assignment.
