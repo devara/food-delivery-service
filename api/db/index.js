@@ -3,7 +3,6 @@ const fastifyPlugin = require('fastify-plugin');
 const { MONGO_CONNECTED, MONGO_NOT_CONNECTED } = require('../constants');
 const { logInfoDetails, logErrDetails } = require('../helpers/logger');
 const {
-  MONGODB_URL,
   MONGODB_HOST,
   MONGODB_DATABASE,
   MONGODB_USERNAME,
